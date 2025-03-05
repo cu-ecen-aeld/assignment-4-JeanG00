@@ -40,6 +40,87 @@ the br2-external tree for commit.
 
 ## Assignments Grading Criteria
 
+```bash
+# Step 1: Repository Setup
+# find Github Classroom Links to create repo
+git clone git@github.com:cu-ecen-aeld/assignment-4-JeanG00.git
+cd assignment-4-JeanG00
+git remote add buildroot-assignments-base  https://github.com/cu-ecen-aeld/buildroot-assignments-base.git
+git fetch buildroot-assignments-base
+git merge buildroot-assignments-base/master
+git submodule update --init --recursive
+
+git submodule add  https://gitlab.com/buildroot.org/buildroot/
+cd buildroot && git checkout 2024.02.x && cd ..
+git commit -am 'feat: submodule added'
+git push -u origin main
+# Step 2: edit file & Install buildroot dependencies
+# update `finder-test.sh` in repo `assignments-3-and-later-JeanG00`
+vim base_external/package/aesd-assignments/aesd-assignments.mk
+sudo apt-get install libncurses5-dev openssh-client expect sshpass netcat iputils-ping
+
+# Step 3: This will generate a default buildroot/.config using qemu_aarch64_virt_defconfig
+./build.sh
+
+# Step 4: save this configuration to your project specific defconfig file
+# `base_external/configs/aesd_qemu_defconfig` vs `buildroot/configs/qemu_aarch64_virt_defconfig`
+./save-config.sh
+
+# Setp 5:
+cd buildroot
+make menuconfig
+# select `aesd-assignments` package you added in your buildroot configuration
+# use `/` at main menuconfig interface to search 'aesd' conf location
+
+./save-config.sh
+
+# Step 6: build your system (will take hours to complete)
+# use `screen` in case of long process run dies
+# `BR2_DL_DIR` allows you to specify a package download directory outside your buildroot tree which is not removed with distclean
+echo "export BR2_DL_DIR=${HOME}/.dl" >> ~/.bashrc
+source ~/.bashrc
+./build.sh
+
+# Step 7:
+./runqemu.sh
+
+# Step: 8:
+./clean.sh
+
+# Step 9:
+# select `dropbear` package to support ssh
+# Set the default root password to “root” using buildroot menuconfig
+cd buildroot && make menuconfig
+
+# single package rebuild
+make aesd-assignments-rebuild
+make aesd-assignments-reconfigure
+
+# Local builds
+make AESD_ASSIGNMENTS_OVERRIDE_SRCDIR=${HOME}/Documents/assignments-3-and-later-JeanG00
+
+# Step 10:
+cd ..
+./save-config.sh
+./build.sh
+
+# Step 11: Verify you can use ssh to login to your host using port 10022 and the root user/password
+# Use scp to transfer your /tmp/assignment4-result.txt file from your qemu instance to your assignment-3-and-later repository in an assignments/assignment4 folder.
+./runqemu.sh
+
+# in a new termail, verify qemu-system is working
+netstat -plntu
+# outputs:  tcp        0      0 0.0.0.0:10022           0.0.0.0:*               LISTEN      1129661/qemu-system
+ssh -p 10022 root@localhost -vvv
+
+# run `finder-test.sh` to generate `/tmp/assignment4-result.txt`
+finder-test.sh
+
+exit
+
+scp -P 10022 root@localhost:/tmp/assignment4-result.txt ~/Documents/assignments-3-and-later-JeanG00/assignments/assignment4/
+```
+
 
 ### [assignment-1-instructions](https://www.coursera.org/learn/linux-system-programming-introduction-to-buildroot/supplement/bnixD/assignment-1-instructions)
 

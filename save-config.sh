@@ -5,6 +5,8 @@
 cd `dirname $0`
 source shared.sh
 mkdir -p base_external/configs/
+
+# save buildroot defconfiguration file to some place
 make -C buildroot savedefconfig BR2_DEFCONFIG=${AESD_MODIFIED_DEFCONFIG_REL_BUILDROOT}
 
 if [ -e buildroot/.config ] && [ -e buildroot/output/build/linux-*/.config ]; then
